@@ -30,12 +30,12 @@ def _find_config_path():
 def load_config():
     config_path = _find_config_path()
     if not config_path:
-        return {"auto_approve": [], "always_block": [], "timeout_seconds": 300}
+        return {"auto_approve": [], "always_block": [], "timeout_seconds": 60}
     try:
         with open(config_path, "r") as f:
             return json.load(f)
     except (FileNotFoundError, json.JSONDecodeError):
-        return {"auto_approve": [], "always_block": [], "timeout_seconds": 300}
+        return {"auto_approve": [], "always_block": [], "timeout_seconds": 60}
 
 
 def _get_pester_url():

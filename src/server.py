@@ -41,7 +41,7 @@ def deny(request_id: str, message: str = "Denied via Pester") -> None:
             _requests[request_id]["message"] = message
 
 
-def always_allow(request_id: str) -> None:
+def always_allow(request_id: str) -> str | None:
     """Mark approved and return the tool_name so caller can persist it to config."""
     with _requests_lock:
         if request_id in _requests:
