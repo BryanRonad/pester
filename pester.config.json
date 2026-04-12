@@ -1,0 +1,8 @@
+{
+  "port": 9001,
+  "timeout_seconds": 60,
+  "notify_only": false,
+  "auto_deny_on_timeout": false,
+  "auto_approve": ["Read", "Glob", "Grep", "LS"],
+  "always_block": []
+}
