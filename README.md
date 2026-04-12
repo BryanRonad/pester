@@ -12,7 +12,7 @@ Inspired by [Claude Guardian](https://github.com/anshaneja5/Claude-Guardian) (ma
 - **System tray** — always visible; right-click for stats and config
 - **Auto-approve / always-block lists** — skip the popup for tools you always trust (or never want)
 - **Usage stats** — today's cost, tokens, and sessions at a glance
-- **Auto-launches** — starts with Windows; restarts itself if stopped
+- **Auto-launches** — registers itself to start on Windows login
 
 ---
 
@@ -36,9 +36,7 @@ Run pester only when you need it, with no startup registration or registry chang
 powershell -ExecutionPolicy Bypass -File run.ps1
 ```
 
-This kills any existing instance and starts a fresh one. Hooks still work regardless of how pester was launched. Stop it via the tray or just close the process.
-
-> You still need to run `setup.ps1` once to install the Claude Code hooks into `~\.claude\settings.json`. After that, use `run.ps1` day-to-day instead.
+This kills any existing instance, refreshes the Claude Code hooks in `~\.claude\settings.json`, ensures the user config exists, and starts a fresh instance. It does not add the Windows startup registry entry. Stop it via the tray or just close the process.
 
 ---
 
@@ -66,18 +64,7 @@ That's it. Pester will appear in your system tray and hook into every Claude Cod
 
 When Claude tries to use a tool, a popup appears in the bottom-right corner:
 
-```
-┌─────────────────────────────────┐
-│ ! Pester                        │
-│ Tool:  Bash                     │
-│ Args:  npm run build            │
-│ Session: ...a3f2                │
-│                                 │
-│ Auto-deny in 60s ████████░░░░  │
-│                                 │
-│  [Allow Y]  [Always A]  [Deny N]│
-└─────────────────────────────────┘
-```
+![Pester popup UI](docs/screenshots/popup-ui.png)
 
 | Button | Key | Effect |
 |--------|-----|--------|
@@ -157,6 +144,13 @@ Removes hooks from `~\.claude\settings.json`, removes the startup registry entry
 
 ## How it works
 
-Claude Code fires hook scripts (via `~\.claude\settings.json`) on every tool call. Each hook script sends a request to the pester app over localhost HTTP, then polls for a decision. The pester app shows the popup, waits for your input, and returns `allow` or `deny`. The hook script forwards that decision back to Claude Code as a JSON response.
+Claude Code fires hook scripts (registered in `~\.claude\settings.json`) before each tool call. There are two hook paths:
+
+- **`pre_tool_use`** — fires for tools already in Claude Code's allow list. Pester intercepts these because Claude Code won't prompt for them on its own.
+- **`permission_request`** — fires when Claude Code would show its own Yes/No prompt. Pester replaces that prompt with its popup.
+
+Each hook sends a request to the pester app over localhost HTTP, then polls until you decide. The pester app shows the popup, waits for your input, and returns `allow` or `deny`. The hook forwards that back to Claude Code as a JSON response.
+
+`setup.ps1` writes the hook commands into `~\.claude\settings.json` and adds a `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` registry entry so pester starts on login.
 
 If pester isn't running, hooks exit cleanly and Claude Code falls back to its own behavior — no hanging, no errors.
