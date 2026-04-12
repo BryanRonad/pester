@@ -27,4 +27,4 @@ try {
 }
 
 Write-Host "Starting Pester (on-demand)..."
-& cmd /c start "" /b $python `"$entrypoint`"
+Start-Process -FilePath $python -ArgumentList "`"$entrypoint`"" -WindowStyle Hidden
