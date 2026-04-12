@@ -30,7 +30,7 @@ def _format_tool_input(tool_input: dict) -> str:
     return val[:120] + ("..." if len(val) > 120 else "")
 
 
-def _show_one(request: dict, on_approve: Callable, on_deny: Callable, on_always: Callable) -> None:
+def _show_one(request: dict, on_approve: Callable, on_deny: Callable, on_always: Callable, on_passthrough: Callable) -> None:
     """Show a single popup and block until the user decides."""
     decided = threading.Event()
     result = [None]
@@ -71,7 +71,9 @@ def _show_one(request: dict, on_approve: Callable, on_deny: Callable, on_always:
 
     # Countdown bar
     timeout = max(1, int(request.get("timeout_seconds", 60) or 60))
-    countdown_var = tk.StringVar(value=f"Auto-deny in {timeout}s")
+    auto_deny = request.get("auto_deny_on_timeout", True)
+    countdown_label = f"Auto-deny in {timeout}s" if auto_deny else f"Auto-dismiss in {timeout}s"
+    countdown_var = tk.StringVar(value=countdown_label)
     tk.Label(body, textvariable=countdown_var, font=FONT_SMALL, bg=BG, fg="#888888", anchor="w").pack(fill="x", pady=(6, 2))
     progress = ttk.Progressbar(body, maximum=timeout, value=timeout, length=340)
     progress.pack(fill="x")
@@ -128,9 +130,16 @@ def _show_one(request: dict, on_approve: Callable, on_deny: Callable, on_always:
             return
         remaining[0] -= 1
         progress["value"] = remaining[0]
-        countdown_var.set(f"Auto-deny in {remaining[0]}s")
+        label = f"Auto-deny in {remaining[0]}s" if auto_deny else f"Auto-dismiss in {remaining[0]}s"
+        countdown_var.set(label)
         if remaining[0] <= 0:
-            do_deny()
+            if auto_deny:
+                do_deny()
+            else:
+                # passthrough — close without a decision so the hook falls back to Claude Code
+                result[0] = "passthrough"
+                decided.set()
+                root.destroy()
         else:
             root.after(1000, tick)
 
@@ -143,6 +152,8 @@ def _show_one(request: dict, on_approve: Callable, on_deny: Callable, on_always:
         on_approve()
     elif result[0] == "always":
         on_always()
+    elif result[0] == "passthrough":
+        on_passthrough()
     else:
         on_deny()
 
@@ -153,9 +164,9 @@ def _popup_worker() -> None:
         item = _popup_queue.get()
         if item is None:
             break
-        request, on_approve, on_deny, on_always = item
+        request, on_approve, on_deny, on_always, on_passthrough = item
         try:
-            _show_one(request, on_approve, on_deny, on_always)
+            _show_one(request, on_approve, on_deny, on_always, on_passthrough)
         except Exception as e:
             # If popup crashes, auto-deny
             on_deny()
@@ -180,6 +191,7 @@ def enqueue_request(request: dict) -> None:
     config = cfg.load_config()
     request_with_config = dict(request)
     request_with_config["timeout_seconds"] = config.get("timeout_seconds", 60)
+    request_with_config["auto_deny_on_timeout"] = config.get("auto_deny_on_timeout", True)
 
     def on_approve():
         srv.approve(request_id)
@@ -199,4 +211,9 @@ def enqueue_request(request: dict) -> None:
             except Exception:
                 pass
 
-    _popup_queue.put((request_with_config, on_approve, on_deny, on_always))
+    def on_passthrough():
+        with srv._requests_lock:
+            if request_id in srv._requests:
+                srv._requests[request_id]["status"] = "passthrough"
+
+    _popup_queue.put((request_with_config, on_approve, on_deny, on_always, on_passthrough))
