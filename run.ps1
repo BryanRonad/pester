@@ -18,9 +18,9 @@ $healthUrl = "http://localhost:9001/health"
 try {
     $null = Invoke-WebRequest -Uri $healthUrl -UseBasicParsing -TimeoutSec 1
     Write-Host "Stopping existing Pester instance..."
-    Get-Process -Name python -ErrorAction SilentlyContinue |
+    Get-CimInstance Win32_Process -Filter "Name='python.exe'" |
         Where-Object { $_.CommandLine -like "*pester.py*" } |
-        Stop-Process -Force -ErrorAction SilentlyContinue
+        ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
     Start-Sleep -Seconds 1
 } catch {
     # Not running — nothing to stop

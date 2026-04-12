@@ -180,7 +180,10 @@ def poll_for_decision(request_id, timeout=60):
             elif status == "denied":
                 return "deny", data.get("message", "User denied this action")
             elif status == "timeout":
-                return "deny", "Request timed out - auto-denied"
+                config = load_config()
+                if config.get("auto_deny_on_timeout", True):
+                    return "deny", "Request timed out - auto-denied"
+                return "passthrough", ""
             else:
                 time.sleep(POLL_INTERVAL)
                 continue
@@ -191,7 +194,10 @@ def poll_for_decision(request_id, timeout=60):
             time.sleep(POLL_INTERVAL)
             continue
 
-    return "deny", "Hook polling timed out"
+    config = load_config()
+    if config.get("auto_deny_on_timeout", True):
+        return "deny", "Hook polling timed out"
+    return "passthrough", ""
 
 
 def is_bypass_mode(config):
