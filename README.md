@@ -18,7 +18,16 @@ Inspired by [Claude Guardian](https://github.com/anshaneja5/Claude-Guardian) (ma
 
 ## Modes
 
-### Service mode (recommended)
+### On-demand mode
+Run pester only when you need it, with no startup registration or registry changes. Good for testing, corporate machines, or if you'd rather launch it yourself.
+
+```powershell
+powershell -File run.ps1
+```
+
+This kills any existing instance, refreshes the Claude Code hooks in `~\.claude\settings.json`, ensures the user config exists, and starts a fresh instance. It does not add the Windows startup registry entry. Stop it via the tray or just close the process.
+
+### Service mode
 Pester installs itself as a Windows startup program. It launches automatically on login, runs in the system tray, and persists across reboots.
 
 ```powershell
@@ -28,15 +37,6 @@ powershell -File setup.ps1
 To restart after a config change or update: right-click the tray icon → **Restart**.
 
 To stop: right-click → **Quit**. It will relaunch on next login.
-
-### On-demand mode
-Run pester only when you need it, with no startup registration or registry changes. Good for testing, corporate machines, or if you'd rather launch it yourself.
-
-```powershell
-powershell -File run.ps1
-```
-
-This kills any existing instance, refreshes the Claude Code hooks in `~\.claude\settings.json`, ensures the user config exists, and starts a fresh instance. It does not add the Windows startup registry entry. Stop it via the tray or just close the process.
 
 ---
 
