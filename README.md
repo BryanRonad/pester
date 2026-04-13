@@ -22,7 +22,7 @@ Inspired by [Claude Guardian](https://github.com/anshaneja5/Claude-Guardian) (ma
 Pester installs itself as a Windows startup program. It launches automatically on login, runs in the system tray, and persists across reboots.
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File setup.ps1
+powershell -File setup.ps1
 ```
 
 To restart after a config change or update: right-click the tray icon → **Restart**.
@@ -33,7 +33,7 @@ To stop: right-click → **Quit**. It will relaunch on next login.
 Run pester only when you need it, with no startup registration or registry changes. Good for testing, corporate machines, or if you'd rather launch it yourself.
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File run.ps1
+powershell -File run.ps1
 ```
 
 This kills any existing instance, refreshes the Claude Code hooks in `~\.claude\settings.json`, ensures the user config exists, and starts a fresh instance. It does not add the Windows startup registry entry. Stop it via the tray or just close the process.
@@ -51,9 +51,9 @@ This kills any existing instance, refreshes the Claude Code hooks in `~\.claude\
 ## Install
 
 ```powershell
-git clone <this-repo> pester
+git clone https://github.com/BryanRonad/pester.git
 cd pester
-powershell -ExecutionPolicy Bypass -File setup.ps1
+powershell -File setup.ps1
 ```
 
 That's it. Pester will appear in your system tray and hook into every Claude Code session automatically.
@@ -135,7 +135,7 @@ Produces `dist\pester.exe` — no Python required on the target machine.
 ## Uninstall
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File uninstall.ps1
+powershell -File uninstall.ps1
 ```
 
 Removes hooks from `~\.claude\settings.json`, removes the startup registry entry, and optionally deletes `%APPDATA%\pester\`.
