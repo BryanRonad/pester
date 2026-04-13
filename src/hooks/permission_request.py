@@ -117,26 +117,6 @@ def poll_for_decision(request_id, timeout=300):
     return "passthrough", ""
 
 
-def send_cost_update(session_id, cost_usd):
-    if cost_usd <= 0:
-        return
-    try:
-        payload = json.dumps({
-            "event": "CostUpdate",
-            "session_id": session_id,
-            "cost_usd": cost_usd,
-        }).encode("utf-8")
-        req = urllib.request.Request(
-            f"{PESTER_URL}/session",
-            data=payload,
-            headers={"Content-Type": "application/json"},
-            method="POST"
-        )
-        urllib.request.urlopen(req, timeout=1)
-    except Exception:
-        pass
-
-
 def main():
     raw_input = sys.stdin.read()
     try:
@@ -147,12 +127,6 @@ def main():
     tool_name = hook_input.get("tool_name", "")
     tool_input = hook_input.get("tool_input", {})
     session_id = hook_input.get("session_id", "unknown")
-
-    # Send cost update if available
-    cost_data = hook_input.get("cost", {})
-    cost_usd = cost_data.get("total_cost_usd", 0) if isinstance(cost_data, dict) else 0
-    if cost_usd > 0:
-        send_cost_update(session_id, cost_usd)
 
     config = load_config()
 

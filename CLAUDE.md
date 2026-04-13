@@ -15,8 +15,8 @@ Claude Code (hook fires)
   hooks/permission_request.py                      │
         │  GET /decision/{id}                      ├─ HTTP server thread (server.py)
         │  (polls, blocks)                         ├─ Popup worker thread (popup.py)
-        ▼                                          ├─ System tray — main thread (tray.py)
-  JSON decision → Claude Code                      └─ Analytics reader (analytics.py)
+        ▼                                          └─ System tray — main thread (tray.py)
+  JSON decision → Claude Code
 ```
 
 **Single process, three threads:**
@@ -37,8 +37,7 @@ pester/
     pester.py             Entry point: wires server + popup + tray
     server.py             HTTP server, in-memory request store
     popup.py              tkinter approval dialog + queue
-    tray.py               pystray tray icon + Stats/Config menu
-    analytics.py          ~/.claude/ JSONL reader for cost/token stats
+    tray.py               pystray tray icon + config menu
     config.py             load_config() / save_config() / get_config_path()
     hooks/
       pre_tool_use.py         Intercepts allowed tools (Claude's own allowlist path)
@@ -78,8 +77,7 @@ Fires for **every** tool call. Only acts as a Pester gatekeeper when the tool is
 in Claude Code's own allow list (because `permission_request` will NOT fire for those).
 
 Flow:
-1. Send cost update if available
-2. `notify_only` or `--dangerously-skip-permissions` → silent passthrough
+1. `notify_only` or `--dangerously-skip-permissions` → silent passthrough
 3. Tool is in Claude Code's allow list?
    - No → only enforce `always_block`; let `permission_request` handle the popup
    - Yes → check `auto_approve`, `always_block`, then show Pester popup
@@ -155,8 +153,8 @@ Flow:
 ## Tray Menu
 
 Right-click the tray icon:
-- **Stats** — today's cost/sessions/tokens + all-time totals (reads `~/.claude/projects/**/*.jsonl`, cached 60s)
 - **Open Config** — `os.startfile` on `%APPDATA%\pester\pester.config.json`
+- **Restart** — re-launches pester process
 - **Quit** — `icon.stop()` + `sys.exit(0)`
 
 ---
@@ -165,7 +163,7 @@ Right-click the tray icon:
 
 ```powershell
 # Install (from repo root)
-powershell -ExecutionPolicy Bypass -File setup.ps1
+powershell -File setup.ps1
 ```
 
 `setup.ps1` does:
@@ -181,7 +179,7 @@ powershell -ExecutionPolicy Bypass -File setup.ps1
 
 ```powershell
 # Uninstall
-powershell -ExecutionPolicy Bypass -File uninstall.ps1
+powershell -File uninstall.ps1
 ```
 
 ---
@@ -195,16 +193,6 @@ python src/pester.py
 Requires: `pystray`, `Pillow`, `psutil` (see `requirements.txt`). `tkinter` ships with Python on Windows.
 
 Port conflict → process prints message and exits immediately (single-instance guard).
-
----
-
-## Analytics
-
-`analytics.py` reads `~/.claude/projects/**/*.jsonl`. Each line is a JSON record.
-Extracts: `costUSD`/`cost_usd`, `usage.input_tokens`, `usage.output_tokens`,
-`cache_creation_input_tokens`, `cache_read_input_tokens`, `timestamp`/`ts`, `model`.
-
-Results cached for 60 seconds. Call `invalidate_cache()` to force reload.
 
 ---
 

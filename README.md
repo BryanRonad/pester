@@ -9,9 +9,8 @@ Inspired by [Claude Guardian](https://github.com/anshaneja5/Claude-Guardian) (ma
 ## What it does
 
 - **Popup on every tool call** — approve/deny with a keypress before Claude proceeds
-- **System tray** — always visible; right-click for stats and config
+- **System tray** — always visible; right-click for config
 - **Auto-approve / always-block lists** — skip the popup for tools you always trust (or never want)
-- **Usage stats** — today's cost, tokens, and sessions at a glance
 - **Auto-launches** — registers itself to start on Windows login
 
 ---
@@ -108,8 +107,8 @@ Clicking **Always** in the popup automatically appends the tool to `auto_approve
 
 Right-click the tray icon:
 
-- **Stats** — today's cost, sessions, messages, token counts + all-time totals
 - **Open Config** — opens `pester.config.json` in your default editor
+- **Restart** — restart pester after a config change or update
 - **Quit** — stops pester (hooks fall through to Claude Code's default behavior)
 
 ---

@@ -14,10 +14,6 @@ from typing import Callable, Optional
 _requests: dict[str, dict] = {}
 _requests_lock = threading.Lock()
 
-# Session events for analytics: list of {event, session_id, ...}
-_session_events: list[dict] = []
-_session_lock = threading.Lock()
-
 # Callback fired when a new /request arrives — used by pester.py to show popup
 _approval_callback: Optional[Callable[[dict], None]] = None
 
@@ -49,11 +45,6 @@ def always_allow(request_id: str) -> str | None:
             _requests[request_id]["message"] = "Always allowed via Pester"
             return _requests[request_id].get("tool_name")
     return None
-
-
-def get_session_events() -> list[dict]:
-    with _session_lock:
-        return list(_session_events)
 
 
 class _Handler(BaseHTTPRequestHandler):
@@ -129,10 +120,6 @@ class _Handler(BaseHTTPRequestHandler):
             return
 
         if self.path == "/session":
-            data = self._read_json()
-            if data:
-                with _session_lock:
-                    _session_events.append(data)
             self._send_json(200, {"ok": True})
             return
 
