@@ -82,14 +82,6 @@ function Get-PythonCommand {
 }
 
 function Get-InstallTarget {
-    $exePath = Join-Path $ScriptRoot "dist\pester.exe"
-    if (Test-Path $exePath) {
-        return @{
-            Command = '"' + $exePath + '"'
-            Display = $exePath
-        }
-    }
-
     $pythonCommand = Get-PythonCommand
     $entrypoint = Join-Path $ScriptRoot "src\pester.py"
     return @{

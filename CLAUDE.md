@@ -11,7 +11,7 @@ Windows-native Claude Code permission guardian. Python port of
 Claude Code (hook fires)
         │  stdin JSON
         ▼
-  hooks/pre_tool_use.py        ──POST /request──►  pester.exe (localhost:9001)
+  hooks/pre_tool_use.py        ──POST /request──►  pester (localhost:9001)
   hooks/permission_request.py                      │
         │  GET /decision/{id}                      ├─ HTTP server thread (server.py)
         │  (polls, blocks)                         ├─ Popup worker thread (popup.py)
@@ -51,7 +51,6 @@ pester/
   pester.config.json      Bundled default config
   setup.ps1               Installs hooks into ~/.claude/settings.json + startup reg key
   uninstall.ps1           Removes hooks + reg key; optionally deletes %APPDATA%\pester\
-  build.bat               PyInstaller one-liner → dist/pester.exe
   requirements.txt
 ```
 
@@ -184,17 +183,6 @@ powershell -ExecutionPolicy Bypass -File setup.ps1
 # Uninstall
 powershell -ExecutionPolicy Bypass -File uninstall.ps1
 ```
-
----
-
-## Build (PyInstaller)
-
-```bat
-build.bat
-```
-
-Produces `dist/pester.exe` — single-file Windows executable, no Python required.
-`stop.py` checks for `dist/pester.exe` first when auto-launching.
 
 ---
 

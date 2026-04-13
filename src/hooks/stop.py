@@ -50,16 +50,6 @@ def pester_running(url):
 def launch_pester():
     """Launch the Pester app and wait up to 5 seconds for it to start."""
     import sys
-    # Try pester.exe first (installed/bundled), then fall back to running src directly
-    exe_candidates = [
-        os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "dist", "pester.exe"),
-        os.path.expanduser("~/AppData/Local/Programs/pester/pester.exe"),
-    ]
-    for exe in exe_candidates:
-        if os.path.exists(exe):
-            subprocess.Popen([exe], creationflags=subprocess.DETACHED_PROCESS)
-            return
-    # Fallback: run from source
     src = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "pester.py")
     if os.path.exists(src):
         subprocess.Popen([sys.executable, src], creationflags=subprocess.DETACHED_PROCESS)

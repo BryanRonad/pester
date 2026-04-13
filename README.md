@@ -122,16 +122,6 @@ Pester also detects when Claude Code is launched with `--dangerously-skip-permis
 
 ---
 
-## Build a standalone .exe
-
-```bat
-build.bat
-```
-
-Produces `dist\pester.exe` — no Python required on the target machine.
-
----
-
 ## Uninstall
 
 ```powershell
