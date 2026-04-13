@@ -144,6 +144,13 @@ function Install-Hooks([string]$PythonPath) {
 }
 
 $pythonLaunch = Get-PythonLaunch
+
+Write-Host "Installing dependencies..."
+& $pythonLaunch.FilePath -m pip install -r "$ScriptRoot\requirements.txt" --quiet
+if ($LASTEXITCODE -ne 0) {
+    throw "Dependency installation failed."
+}
+
 Install-Hooks -PythonPath $pythonLaunch.FilePath
 
 # Kill any existing instance
