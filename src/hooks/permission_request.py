@@ -29,13 +29,40 @@ def _find_config_path():
 
 def load_config():
     config_path = _find_config_path()
+    defaults = {"auto_approve": [], "always_block": [], "timeout_seconds": 60, "timeout_behavior": "deny"}
     if not config_path:
-        return {"auto_approve": [], "always_block": [], "timeout_seconds": 60}
+        return defaults
     try:
         with open(config_path, "r") as f:
-            return json.load(f)
+            data = json.load(f)
+        return _normalize_config(data)
     except (FileNotFoundError, json.JSONDecodeError):
-        return {"auto_approve": [], "always_block": [], "timeout_seconds": 60}
+        return defaults
+
+
+def _get_timeout_behavior(config):
+    env_behavior = os.environ.get("PESTER_TIMEOUT_BEHAVIOR", "").strip().lower()
+    if env_behavior in {"deny", "dismiss", "allow"}:
+        return env_behavior
+    behavior = config.get("timeout_behavior")
+    if behavior in {"deny", "dismiss", "allow"}:
+        return behavior
+    legacy = config.get("auto_deny_on_timeout")
+    if isinstance(legacy, bool):
+        return "deny" if legacy else "dismiss"
+    return "deny"
+
+
+def _normalize_config(config):
+    normalized = {
+        "auto_approve": config.get("auto_approve", []),
+        "always_block": config.get("always_block", []),
+        "timeout_seconds": config.get("timeout_seconds", 60),
+        "timeout_behavior": _get_timeout_behavior(config),
+    }
+    if "port" in config:
+        normalized["port"] = config["port"]
+    return normalized
 
 
 def _get_pester_url():
@@ -100,7 +127,10 @@ def poll_for_decision(request_id, timeout=300):
                 return "deny", data.get("message", "User denied this action")
             elif status == "timeout":
                 config = load_config()
-                if config.get("auto_deny_on_timeout", True):
+                timeout_behavior = config.get("timeout_behavior", "deny")
+                if timeout_behavior == "allow":
+                    return "allow", "Request timed out - auto-allowed"
+                if timeout_behavior == "deny":
                     return "deny", "Request timed out - auto-denied"
                 return "passthrough", ""
             else:
@@ -112,7 +142,10 @@ def poll_for_decision(request_id, timeout=300):
             time.sleep(POLL_INTERVAL)
             continue
     config = load_config()
-    if config.get("auto_deny_on_timeout", True):
+    timeout_behavior = config.get("timeout_behavior", "deny")
+    if timeout_behavior == "allow":
+        return "allow", "Hook polling timed out - auto-allowed"
+    if timeout_behavior == "deny":
         return "deny", "Hook polling timed out"
     return "passthrough", ""
 

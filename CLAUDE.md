@@ -117,7 +117,7 @@ Flow:
   "port": 9001,
   "timeout_seconds": 60,
   "notify_only": false,
-  "auto_deny_on_timeout": true,
+  "timeout_behavior": "deny",
   "auto_approve": ["Read", "Glob", "Grep", "LS"],
   "always_block": []
 }
@@ -128,11 +128,12 @@ Flow:
 | `port` | int | HTTP server port |
 | `timeout_seconds` | int | Seconds before popup auto-resolves |
 | `notify_only` | bool | Skip all permission prompts; pester is observer only |
-| `auto_deny_on_timeout` | bool | `true` = deny on timeout; `false` = passthrough to Claude Code |
+| `timeout_behavior` | string | `"deny"`, `"dismiss"`, or `"allow"` when the popup times out |
 | `auto_approve` | list[str] | Tool names silently allowed without popup |
 | `always_block` | list[str] | Tool names silently denied without popup |
 
 **"Always Allow" button** in popup appends the tool name to `auto_approve` and saves config atomically.
+`PESTER_TIMEOUT_BEHAVIOR` can override `timeout_behavior` at runtime with `deny`, `dismiss`, or `allow`.
 
 ---
 

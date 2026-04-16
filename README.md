@@ -71,7 +71,7 @@ When Claude tries to use a tool, a popup appears in the bottom-right corner:
 | Always | `A` | Allow now + add to auto-approve list |
 | Deny | `N` or `Escape` | Block this call |
 
-If you don't respond in time, the popup auto-resolves (deny by default — configurable).
+If you don't respond in time, the popup auto-resolves according to `timeout_behavior`.
 
 ---
 
@@ -83,7 +83,7 @@ Edit `%APPDATA%\pester\pester.config.json`:
 {
   "timeout_seconds": 60,
   "notify_only": false,
-  "auto_deny_on_timeout": true,
+  "timeout_behavior": "deny",
   "auto_approve": ["Read", "Glob", "Grep", "LS"],
   "always_block": []
 }
@@ -93,9 +93,17 @@ Edit `%APPDATA%\pester\pester.config.json`:
 |-----|---------|-------------|
 | `timeout_seconds` | `60` | Seconds before popup auto-resolves |
 | `notify_only` | `false` | Observer mode — no prompts, just notifications |
-| `auto_deny_on_timeout` | `true` | `false` = fall back to Claude Code's own prompt on timeout |
+| `timeout_behavior` | `"deny"` | One of `"deny"`, `"dismiss"`, or `"allow"` when the popup times out |
 | `auto_approve` | `[Read, Glob, Grep, LS]` | Tools silently allowed (no popup) |
 | `always_block` | `[]` | Tools silently denied (no popup) |
+
+Timeout behaviors:
+
+- `"deny"` blocks the tool call when the popup expires
+- `"dismiss"` closes the popup and falls back to Claude Code's own prompt
+- `"allow"` approves the tool call when the popup expires
+
+You can also override this at runtime with `PESTER_TIMEOUT_BEHAVIOR=deny|dismiss|allow`.
 
 You can also open the config from the tray: right-click → **Open Config**.
 

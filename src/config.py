@@ -10,10 +10,37 @@ DEFAULTS = {
     "port": 9001,
     "timeout_seconds": 60,
     "notify_only": False,
-    "auto_deny_on_timeout": True,
+    "timeout_behavior": "deny",
     "auto_approve": ["Read", "Glob", "Grep", "LS"],
     "always_block": [],
 }
+
+
+def normalize_timeout_behavior(data: dict | None) -> str:
+    """Normalize timeout behavior, including legacy boolean config."""
+    env_behavior = os.environ.get("PESTER_TIMEOUT_BEHAVIOR", "").strip().lower()
+    if env_behavior in {"deny", "dismiss", "allow"}:
+        return env_behavior
+
+    if not isinstance(data, dict):
+        return DEFAULTS["timeout_behavior"]
+
+    behavior = data.get("timeout_behavior")
+    if behavior in {"deny", "dismiss", "allow"}:
+        return behavior
+
+    legacy = data.get("auto_deny_on_timeout")
+    if isinstance(legacy, bool):
+        return "deny" if legacy else "dismiss"
+
+    return DEFAULTS["timeout_behavior"]
+
+
+def _merge_config(data: dict | None) -> dict:
+    merged = {**DEFAULTS, **(data or {})}
+    merged["timeout_behavior"] = normalize_timeout_behavior(data)
+    merged.pop("auto_deny_on_timeout", None)
+    return merged
 
 def get_config_dir() -> Path:
     appdata = os.environ.get("APPDATA", str(Path.home()))
@@ -36,7 +63,7 @@ def load_config() -> dict:
         try:
             with open(config_path, "r") as f:
                 data = json.load(f)
-            return {**DEFAULTS, **data}
+            return _merge_config(data)
         except (json.JSONDecodeError, OSError):
             pass
 
@@ -46,7 +73,7 @@ def load_config() -> dict:
         try:
             with open(bundled, "r") as f:
                 data = json.load(f)
-            merged = {**DEFAULTS, **data}
+            merged = _merge_config(data)
             # Write to user location for next time
             config_dir.mkdir(parents=True, exist_ok=True)
             with open(config_path, "w") as f:
@@ -66,8 +93,9 @@ def save_config(data: dict) -> None:
     config_path = get_config_path()
     config_path.parent.mkdir(parents=True, exist_ok=True)
     tmp = config_path.with_suffix(".tmp")
+    normalized = _merge_config(data)
     with open(tmp, "w") as f:
-        json.dump(data, f, indent=2)
+        json.dump(normalized, f, indent=2)
     tmp.replace(config_path)
 
 def get_server_url() -> str:

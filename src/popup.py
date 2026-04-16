@@ -82,8 +82,13 @@ def _show_one(request: dict, on_approve: Callable, on_deny: Callable, on_always:
 
     # Countdown bar
     timeout = max(1, int(request.get("timeout_seconds", 60) or 60))
-    auto_deny = request.get("auto_deny_on_timeout", True)
-    countdown_label = f"Auto-deny in {timeout}s" if auto_deny else f"Auto-dismiss in {timeout}s"
+    timeout_behavior = request.get("timeout_behavior", "deny")
+    countdown_prefix = {
+        "deny": "Auto-deny",
+        "dismiss": "Auto-dismiss",
+        "allow": "Auto-allow",
+    }.get(timeout_behavior, "Auto-deny")
+    countdown_label = f"{countdown_prefix} in {timeout}s"
     countdown_var = tk.StringVar(value=countdown_label)
     tk.Label(body, textvariable=countdown_var, font=FONT_SMALL, bg=BG, fg="#888888", anchor="w").pack(fill="x", pady=(6, 2))
     progress_width = 340
@@ -187,15 +192,17 @@ def _show_one(request: dict, on_approve: Callable, on_deny: Callable, on_always:
         remaining[0] -= 1
         fill_width = int(progress_width * (remaining[0] / timeout))
         progress.coords(progress_fill, 0, 0, fill_width, progress_height)
-        label = f"Auto-deny in {remaining[0]}s" if auto_deny else f"Auto-dismiss in {remaining[0]}s"
+        label = f"{countdown_prefix} in {remaining[0]}s"
         countdown_var.set(label)
         if remaining[0] <= 0:
-            if auto_deny:
-                do_deny()
-            else:
+            if timeout_behavior == "allow":
+                do_approve()
+            elif timeout_behavior == "dismiss":
                 # passthrough — close without a decision so the hook falls back to Claude Code
                 result[0] = "passthrough"
                 root.destroy()
+            else:
+                do_deny()
         else:
             root.after(1000, tick)
 
@@ -247,7 +254,7 @@ def enqueue_request(request: dict) -> None:
     config = cfg.load_config()
     request_with_config = dict(request)
     request_with_config["timeout_seconds"] = config.get("timeout_seconds", 60)
-    request_with_config["auto_deny_on_timeout"] = config.get("auto_deny_on_timeout", True)
+    request_with_config["timeout_behavior"] = config.get("timeout_behavior", "deny")
 
     def on_approve():
         srv.approve(request_id)
