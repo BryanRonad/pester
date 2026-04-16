@@ -82,6 +82,7 @@ def _show_one(request: dict, on_approve: Callable, on_deny: Callable, on_always:
 
     # Countdown bar
     timeout = max(1, int(request.get("timeout_seconds", 60) or 60))
+    steal_focus = bool(request.get("steal_focus", True))
     timeout_behavior = request.get("timeout_behavior", "deny")
     countdown_prefix = {
         "deny": "Auto-deny",
@@ -207,7 +208,8 @@ def _show_one(request: dict, on_approve: Callable, on_deny: Callable, on_always:
             root.after(1000, tick)
 
     root.after(1000, tick)
-    root.focus_force()
+    if steal_focus:
+        root.focus_force()
     root.mainloop()
 
     # Dispatch result
@@ -254,6 +256,7 @@ def enqueue_request(request: dict) -> None:
     config = cfg.load_config()
     request_with_config = dict(request)
     request_with_config["timeout_seconds"] = config.get("timeout_seconds", 60)
+    request_with_config["steal_focus"] = config.get("steal_focus", True)
     request_with_config["timeout_behavior"] = config.get("timeout_behavior", "deny")
 
     def on_approve():

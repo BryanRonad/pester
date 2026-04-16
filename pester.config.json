@@ -2,6 +2,7 @@
   "port": 9001,
   "timeout_seconds": 60,
   "notify_only": false,
+  "steal_focus": true,
   "timeout_behavior": "deny",
   "auto_approve": ["Read", "Glob", "Grep", "LS"],
   "always_block": []

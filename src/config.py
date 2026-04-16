@@ -10,6 +10,7 @@ DEFAULTS = {
     "port": 9001,
     "timeout_seconds": 60,
     "notify_only": False,
+    "steal_focus": True,
     "timeout_behavior": "deny",
     "auto_approve": ["Read", "Glob", "Grep", "LS"],
     "always_block": [],

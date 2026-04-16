@@ -83,6 +83,7 @@ Edit `%APPDATA%\pester\pester.config.json`:
 {
   "timeout_seconds": 60,
   "notify_only": false,
+  "steal_focus": true,
   "timeout_behavior": "deny",
   "auto_approve": ["Read", "Glob", "Grep", "LS"],
   "always_block": []
@@ -93,6 +94,7 @@ Edit `%APPDATA%\pester\pester.config.json`:
 |-----|---------|-------------|
 | `timeout_seconds` | `60` | Seconds before popup auto-resolves |
 | `notify_only` | `false` | Observer mode — no prompts, just notifications |
+| `steal_focus` | `true` | Whether the popup takes keyboard focus when it appears; it stays topmost either way |
 | `timeout_behavior` | `"deny"` | One of `"deny"`, `"dismiss"`, or `"allow"` when the popup times out |
 | `auto_approve` | `[Read, Glob, Grep, LS]` | Tools silently allowed (no popup) |
 | `always_block` | `[]` | Tools silently denied (no popup) |

@@ -82,6 +82,7 @@ pester/
   "port": 9001,
   "timeout_seconds": 300,
   "notify_only": false,
+  "steal_focus": true,
   "auto_approve": ["Read", "Glob", "Grep", "LS"],
   "always_block": []
 }
@@ -207,6 +208,7 @@ tkinter ships with Python on Windows — no extra install.
 **`src/popup.py`**
 1. `show_popup(request: dict, on_approve, on_deny, on_always_allow)`:
    - Creates a `tk.Toplevel` (or root if first window) set `attributes('-topmost', True)`
+   - Calls `focus_force()` only when `steal_focus` is enabled in config
    - Layout:
      ```
      ┌─────────────────────────────┐
@@ -336,6 +338,7 @@ echo Built: dist\pester.exe
 1. Start `pester.exe` (or `python src/pester.py`)
 2. Open Claude Code, run a command that triggers `Bash` tool
 3. Approval popup appears above Claude Code window
+   - Keyboard focus shifts only when `steal_focus` is `true`
 4. Press Y → Claude Code proceeds
 5. Press Esc → Claude Code receives deny with message
 6. Trigger `Bash` twice with same command after clicking Always Allow → second time auto-approved, no popup

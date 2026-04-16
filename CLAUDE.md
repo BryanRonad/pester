@@ -117,6 +117,7 @@ Flow:
   "port": 9001,
   "timeout_seconds": 60,
   "notify_only": false,
+  "steal_focus": true,
   "timeout_behavior": "deny",
   "auto_approve": ["Read", "Glob", "Grep", "LS"],
   "always_block": []
@@ -128,6 +129,7 @@ Flow:
 | `port` | int | HTTP server port |
 | `timeout_seconds` | int | Seconds before popup auto-resolves |
 | `notify_only` | bool | Skip all permission prompts; pester is observer only |
+| `steal_focus` | bool | Whether the popup takes keyboard focus when it appears; it remains topmost either way |
 | `timeout_behavior` | string | `"deny"`, `"dismiss"`, or `"allow"` when the popup times out |
 | `auto_approve` | list[str] | Tool names silently allowed without popup |
 | `always_block` | list[str] | Tool names silently denied without popup |
@@ -140,6 +142,7 @@ Flow:
 ## Popup UI
 
 - Topmost tkinter window, bottom-right corner
+- Optional keyboard focus steal controlled by `steal_focus`
 - Shows: tool name, first meaningful arg (command/file_path/path/query/pattern), session ID prefix
 - Countdown progress bar (decrements every second)
 - Buttons + keyboard shortcuts:
